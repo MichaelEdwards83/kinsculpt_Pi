@@ -1,12 +1,17 @@
-# Wiring Guide: 8-Axis ArtNet System (PCA9685 Edition)
+# Wiring Guide: 8-Axis Hybrid System (Pi + Arduino)
 
 ## Components
-- **Controller**: Arduino Mega 2560 + W5100 Ethernet Shield
+- **Brain**: Raspberry Pi 4 (Run Web GUI & ArtNet)
+- **Motor Controller**: Arduino Mega 2560 (No Ethernet Shield)
 - **PWM Driver**: **PCA9685 16-Channel Driver**
 - **Motor Drivers**: 8x BTS7960 High Power Modules
 - **Power**: 12V/24V PSU (High Amperage)
 
-## 1. PCA9685 I2C Connection
+## 1. System Communication (Pi <-> Arduino)
+Connect the **Arduino Mega** to the **Raspberry Pi** using a standard **USB Cable**.
+All logic, ArtNet data, and commands are sent over this serial link.
+
+## 2. PCA9685 I2C Connection
 Connect the PCA9685 driver to the Arduino Mega:
 - **VCC** -> 5V
 - **GND** -> GND
@@ -17,7 +22,7 @@ Connect the PCA9685 driver to the Arduino Mega:
 > [!IMPORTANT]
 > **External Power**: The PCA9685 has a green terminal block for servo power. Since we are only sending logic signals (PWM) to the BTS7960 drivers, **you DO NOT need to plug power into the PCA9685 terminal block**. Just powering the Logic VCC with 5V is enough.
 
-## 2. Motor Driver Connections (BTS7960 to PCA9685)
+## 3. Motor Driver Connections (BTS7960 to PCA9685)
 The **PCA9685** has 16 sets of 3-pin headers (PWM, V+, GND).
 We only care about the **Yellow/Signal (PWM)** pin.
 Connect the PCA9685 Channel Signal Pin to the BTS7960 RPWM/LPWM pins.
@@ -35,10 +40,6 @@ Connect the PCA9685 Channel Signal Pin to the BTS7960 RPWM/LPWM pins.
 | **Actuator 7** | Channel **12** | Channel **13** | **A6** |
 | **Actuator 8** | Channel **14** | Channel **15** | **A7** |
 
-## 3. Feedback Potentiometers
+## 4. Feedback Potentiometers
 Connect the wiper (middle pin) of the actuator pots directly to the **Arduino Mega Analog Pins** (A0-A7).
 (Do not connect these to the PCA9685).
-
-## 4. Mode Switch
-- **Pin 2** on Arduino Mega to **GND** = Demo Mode.
-- **Pin 2** Open = ArtNet Mode.
