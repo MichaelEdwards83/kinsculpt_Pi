@@ -53,8 +53,6 @@ class State:
             "limits": self.limits,
             "demo": {
                 "speed": self.demo_speed,
-            "demo": {
-                "speed": self.demo_speed,
                 "pattern": self.demo_pattern
             },
             "artnet_universe": self.artnet_universe
@@ -376,18 +374,19 @@ def index():
                                 on_change=lambda e: setattr(state, 'demo_speed', e.value)).classes('flex-grow')
                             ui.label().bind_text_from(state, 'demo_speed', lambda v: f"{v}x")
 
+            # ArtNet Settings Card
+            with ui.card().classes('w-full bg-slate-800 border-l-4 border-purple-500 mb-6 p-4'):
+                ui.label('ARTNET CONFIGURATION').classes('font-bold text-lg mb-4 text-purple-500')
+                with ui.row().classes('w-full items-center gap-4'):
+                    ui.label('Universe').classes('text-slate-400')
+                    ui.number(value=state.artnet_universe, min=0, max=65535,
+                             on_change=lambda e: setattr(state, 'artnet_universe', int(e.value))).classes('w-64').props('outlined dark')
+
             # Motor Limits Card
             with ui.card().classes('w-full bg-slate-800 border-l-4 border-blue-500 p-4'):
                 ui.label('MOTOR CALIBRATION (Soft Limits)').classes('font-bold text-lg mb-4 text-blue-500')
                 
                 with ui.grid(columns=2).classes('w-full gap-8'):
-                    
-                     # ArtNet Settings
-                    with ui.card().classes('w-full bg-slate-900 border-l-2 border-purple-500 p-2'):
-                        ui.label('ARTNET CONFIG').classes('font-bold text-purple-500 text-xs mb-2')
-                        ui.number('Universe', value=state.artnet_universe, min=0, max=65535,
-                             on_change=lambda e: setattr(state, 'artnet_universe', int(e.value))).classes('w-full').props('outlined dark')
-
                     for i in range(8):
                         with ui.row().classes('w-full justify-between items-center bg-slate-900 p-2 rounded'):
                             ui.label(f"Actuator {i+1}").classes('font-bold text-slate-300')
