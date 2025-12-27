@@ -32,7 +32,9 @@ class State:
         config = self.load_config()
         self.limits = config.get('limits', [{"min": 10, "max": 1013} for _ in range(8)])
         self.demo_speed = config.get('demo', {}).get('speed', 1.0)
+        self.demo_speed = config.get('demo', {}).get('speed', 1.0)
         self.demo_pattern = config.get('demo', {}).get('pattern', 'WAVE')
+        self.artnet_universe = config.get('artnet_universe', 0)
         
         # Random offsets for "Random" mode
         self.random_offsets = [random.random() * 6.28 for _ in range(8)]
@@ -51,8 +53,11 @@ class State:
             "limits": self.limits,
             "demo": {
                 "speed": self.demo_speed,
+            "demo": {
+                "speed": self.demo_speed,
                 "pattern": self.demo_pattern
-            }
+            },
+            "artnet_universe": self.artnet_universe
         }
         with open(CONFIG_FILE, 'w') as f:
             json.dump(data, f)
@@ -130,7 +135,12 @@ class ArtNetListener(threading.Thread):
                 data, _ = self.sock.recvfrom(1024)
                 if len(data) >= 18 and data[0:8] == b'Art-Net\x00':
                      if data[8] == 0x00 and data[9] == 0x50:
-                        state.dmx_data = list(data[18:26])
+                        # Extract Universe (Port Address) - Bytes 14 (Low) and 15 (High)
+                        # Note: ArtNet sends Little Endian for Port Address
+                        packet_universe = data[14] + (data[15] * 256)
+                        
+                        if packet_universe == state.artnet_universe:
+                            state.dmx_data = list(data[18:26])
             except socket.timeout:
                 pass
             except Exception:
@@ -371,6 +381,13 @@ def index():
                 ui.label('MOTOR CALIBRATION (Soft Limits)').classes('font-bold text-lg mb-4 text-blue-500')
                 
                 with ui.grid(columns=2).classes('w-full gap-8'):
+                    
+                     # ArtNet Settings
+                    with ui.card().classes('w-full bg-slate-900 border-l-2 border-purple-500 p-2'):
+                        ui.label('ARTNET CONFIG').classes('font-bold text-purple-500 text-xs mb-2')
+                        ui.number('Universe', value=state.artnet_universe, min=0, max=65535,
+                             on_change=lambda e: setattr(state, 'artnet_universe', int(e.value))).classes('w-full').props('outlined dark')
+
                     for i in range(8):
                         with ui.row().classes('w-full justify-between items-center bg-slate-900 p-2 rounded'):
                             ui.label(f"Actuator {i+1}").classes('font-bold text-slate-300')
